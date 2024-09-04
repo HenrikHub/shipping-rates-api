@@ -52,7 +52,7 @@ async def fetch_average_prices(
     SELECT
         ds.day,
         CASE 
-            WHEN COUNT(fp.price) >= 3 THEN AVG(fp.price)
+            WHEN COUNT(fp.price) >= 3 THEN ROUND(AVG(fp.price), 2)
             ELSE NULL
         END AS average_price
     FROM

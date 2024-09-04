@@ -1,2 +1,5 @@
 fastapi
 aiopg
+pytest
+pytest-mock
+httpx
