@@ -1,9 +1,12 @@
 from fastapi import HTTPException
 import aiopg
+import psycopg2
 import logging
+
 
 # Create a logger instance for this module
 logger = logging.getLogger(__name__)
+
 
 class Database:
     def __init__(self, dsn: str):
@@ -15,7 +18,7 @@ class Database:
             try:
                 self.pool = await aiopg.create_pool(self.dsn)
                 logging.info("Successfully connected to the database.")
-            except aiopg.Error as e:  
+            except psycopg2.Error as e:  # Catch psycopg2 database errors
                 logging.error(f"Failed to connect to the database: {e}")
                 raise
 
@@ -31,6 +34,7 @@ class Database:
             logging.error("Database connection not available.")
             raise ConnectionError("Database connection not available.")
         return self.pool
+
 
 # Database connection settings
 dsn = "dbname=ratesdb user=postgres password=ratestask host=127.0.0.1"
