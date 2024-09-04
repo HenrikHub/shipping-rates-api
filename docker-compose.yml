@@ -1,0 +1,32 @@
+services:
+  db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ratestask
+      POSTGRES_DB: ratesdb
+    volumes:
+      - ./database/rates.sql:/docker-entrypoint-initdb.d/rates.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:ratestask@db:5432/ratesdb
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

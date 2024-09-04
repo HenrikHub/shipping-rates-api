@@ -20,8 +20,5 @@ COPY . /app
 # Expose port 80 for the application
 EXPOSE 80
 
-# Define environment variable for the application port
-ENV PORT 80
-
 # Command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
