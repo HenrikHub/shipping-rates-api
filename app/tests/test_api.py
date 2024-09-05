@@ -2,7 +2,7 @@ import pytest
 import psycopg2
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock,MagicMock, patch
-from app.main import app
+from main import app
 
 client = TestClient(app)
 
