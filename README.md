@@ -118,9 +118,9 @@ curl "http://127.0.0.1:80/rates?date_from=2016-01-01&date_to=2016-01-10&origin=C
 
 ### 4. Running Tests
 
-To run the tests using **pytest**:
+To run the tests using pytest in the Docker environment, use the following command:
 ```bash
-python -m pytest .\app\tests\
+docker-compose run test
 ```
 
 These tests include:
