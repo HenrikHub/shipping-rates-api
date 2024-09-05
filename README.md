@@ -6,7 +6,7 @@
 The **Price API for Shipping Routes** is a Python-based HTTP API that provides the average daily shipping prices between various ports or geographic regions. It is containerized with **Docker** and interacts with a **PostgreSQL** database. The API delivers responses in **JSON** format and is optimized using raw SQL queries to ensure high performance.
 
 ### Key Technologies:
-- **Python**: Main language used to build the API.
+- **Python3.12**: Main language used to build the API.
 - **Docker**: Used for containerization and deployment.
 - **PostgreSQL**: Manages the shipping data and handles complex queries.
 
@@ -125,14 +125,13 @@ python -m pytest .\app\tests\
 
 These tests include:
 
-- API tests for key endpoints (e.g., /rates).
+- API tests for key /rates).
 - Unit tests for the database connection handling (Database class).
 - Utility function tests for validation logic.
 
 
 ## Error Handling
 
-- **400 Bad Request**: Missing or invalid query parameters.
 - **404 Not Found**: No data found for the specified route and date range.
 - **422 Unprocessable Entity**: The request is well-formed, but there are semantic errors (e.g., invalid date format or wrong data type).
 - **500 Internal Server Error**: An unexpected error occurred (logged on the server).
