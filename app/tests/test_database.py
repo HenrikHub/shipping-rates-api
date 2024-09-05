@@ -22,7 +22,7 @@ def setup_dsn():
     os.environ["DATABASE_DSN"] = "dbname=testdb user=testuser password=testpassword host=localhost"
 
 @pytest.mark.asyncio
-@patch("app.database.aiopg.create_pool", new_callable=AsyncMock)  # Mock aiopg.create_pool
+@patch("database.aiopg.create_pool", new_callable=AsyncMock)  # Mock aiopg.create_pool
 async def test_connect_success(mock_create_pool):
     # Use the DSN from the environment variable
     dsn = os.getenv("DATABASE_DSN")

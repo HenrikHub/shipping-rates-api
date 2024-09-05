@@ -24,9 +24,9 @@ mocked_fetch_average_prices = [
 ]
 
 @pytest.mark.asyncio
-@patch("app.database.db.get_pool", new_callable=AsyncMock)  # Correct path to mock db.get_pool
-@patch("app.routes.validate_port_or_region", new_callable=AsyncMock)  # Mock validate_port_or_region
-@patch("app.routes.fetch_average_prices", new_callable=AsyncMock)  # Mock fetch_average_prices
+@patch("database.db.get_pool", new_callable=AsyncMock)  # Correct path to mock db.get_pool
+@patch("routes.validate_port_or_region", new_callable=AsyncMock)  # Mock validate_port_or_region
+@patch("routes.fetch_average_prices", new_callable=AsyncMock)  # Mock fetch_average_prices
 async def test_get_rates_success(mock_fetch_average_prices, mock_validate_port_or_region, mock_get_pool):
     # Setup mocks
     mock_fetch_average_prices.return_value = mocked_fetch_average_prices
@@ -54,9 +54,9 @@ async def test_get_rates_success(mock_fetch_average_prices, mock_validate_port_o
 client = TestClient(app)
 
 @pytest.mark.asyncio
-@patch("app.database.db.get_pool", new_callable=AsyncMock)  # Correct path to mock db.get_pool
-@patch("app.routes.validate_port_or_region", new_callable=AsyncMock)  # Mock validate_port_or_region
-@patch("app.routes.fetch_average_prices", new_callable=AsyncMock)  # Mock fetch_average_prices
+@patch("database.db.get_pool", new_callable=AsyncMock)  # Correct path to mock db.get_pool
+@patch("routes.validate_port_or_region", new_callable=AsyncMock)  # Mock validate_port_or_region
+@patch("routes.fetch_average_prices", new_callable=AsyncMock)  # Mock fetch_average_prices
 async def test_get_rates_database_error(mock_fetch_average_prices, mock_validate_port_or_region, mock_get_pool):
     # Simulate psycopg2.DatabaseError when fetching prices
     mock_fetch_average_prices.side_effect = psycopg2.DatabaseError("Database connection error.")
