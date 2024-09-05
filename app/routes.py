@@ -5,9 +5,6 @@ from typing import List, Any
 import logging
 import psycopg2
 
-# Assuming validate_date and fetch_average_prices are defined elsewhere
-# f
-
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -28,7 +25,6 @@ async def get_rates(
     - date_to (str): End date in YYYY-MM-DD format.
     - origin (str): Origin port code or region slug.
     - destination (str): Destination port code or region slug.
-    - db_pool (Any): Database connection pool, injected via dependency.
 
     Returns:
     - List[dict]: A list of dictionaries containing average prices and other relevant data.
@@ -37,20 +33,21 @@ async def get_rates(
     - HTTPException: If any error occurs during the data fetching process.
     """
 
-    # Validate dates
-    date_from = validate_date(date_from)
-    date_to = validate_date(date_to)
-
     try:
+        # Validate dates
+        date_from = validate_date(date_from)
+        date_to = validate_date(date_to)
+
+        # Fetch data from database
         async with db_pool.acquire() as conn:
             data = await fetch_average_prices(conn, date_from, date_to, origin, destination)
-            return data
+            return data 
+    except ValueError as e:
+        logger.error(f"Validation error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except psycopg2.DatabaseError as e:
         logger.error(f"Database error fetching rates: {e}")
         raise HTTPException(status_code=500, detail="A database error occurred while fetching rates.")
-    except ValueError as e:
-        logger.error(f"Validation error fetching rates: {e}")
-        raise HTTPException(status_code=400, detail="Invalid input provided for fetching rates.")
     except Exception as e:
         logger.error(f"Unexpected error fetching rates: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred while fetching rates.")
