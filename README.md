@@ -1,67 +1,69 @@
+
 # Price API for Shipping Routes
 
 ## Overview
 
-This project is an HTTP-based API that returns the average daily shipping prices between ports or geographic regions. The API is built using Python and SQL, and all data is returned in JSON format.
+The **Price API for Shipping Routes** is a Python-based HTTP API that provides the average daily shipping prices between various ports or geographic regions. It is containerized with **Docker** and interacts with a **PostgreSQL** database. The API delivers responses in **JSON** format and is optimized using raw SQL queries to ensure high performance.
+
+### Key Technologies:
+- **Python3.12**: Main language used to build the API.
+- **Docker**: Used for containerization and deployment.
+- **PostgreSQL**: Manages the shipping data and handles complex queries.
 
 ## Features
 
-- Supports querying prices between specific ports or entire regions.
-- Provides average prices for each day between a given date range.
-- Handles errors and edge cases such as insufficient data for a day (returns `null` for days with less than 3 price entries).
-- Uses raw SQL queries for fetching and manipulating data.
+- Query average prices between specific ports or regions.
+- Fetch prices over a date range, with daily averages.
+- Returns `null` when data is insufficient for a given day (less than 3 price entries).
+- Raw SQL queries optimize the data retrieval process.
 
 ## Project Structure
 
 ```
 project_root/
 ├── app/
-│   ├── main.py                # Entry point for running the application
-│   ├── database.py            # Handles database setup and configuration
-│   ├── routes.py              # Contains the API endpoints
-│   ├── utils.py               # Utility functions shared across the project
-│   ├── Dockerfile             # Docker configuration file
-│   └── tests/                 # Unit and integration test files
-│       ├── test_api.py        # Tests for API functionality
-│       ├── test_database.py   # Tests for database operations
-│       └── test_utils.py      # Tests for utility functions
-├── database/                  # Database schema for creating tables
-│   ├── Dockerfile             # Docker configuration file
-│   └── rates.sql              # SQL script for creating tables
-├── requirements.txt           # List of dependencies to be installed
+│   ├── main.py                # Application entry point
+│   ├── database.py            # Database setup and connection pooling
+│   ├── routes.py              # API route definitions
+│   ├── utils.py               # Utility functions
+│   ├── Dockerfile             # Dockerfile for the API
+│   └── tests/                 # Unit and integration tests
+│       ├── test_api.py        # API tests
+│       ├── test_database.py   # Database tests
+│       └── test_utils.py      # Utility tests
+├── database/                  
+│   ├── Dockerfile             # Dockerfile for PostgreSQL
+│   └── rates.sql              # SQL script for initial data setup
+├── docker-compose.yml         # Docker Compose setup for API and database
+├── requirements.txt           # Python dependencies
 ├── README.md                  # Project documentation
-├── .env                       # Environment variables for local development
-└── .gitignore                 # Specifies files to ignore in version control
 ```
 
 ### Key Files
-
-- **`app/main.py`**: The main entry point for running the Flask application. This file sets up the Flask server and handles the app's lifecycle.
-- **`app/database.py`**: Contains the logic for database setup and connection management. This file initializes the database and provides the class to interact with the database.
-- **`app/roots.py`**: Defines the API endpoints, including the logic for fetching and returning the required data.
-- **`app/utils.py`**: Includes general helper functions that are used throughout the application. This can include utility functions for date validation, data formatting, etc.
-- **`app/tests/`**: Contains unit and integration tests for different parts of the application. Files are organized based on what they are testing: API, database, or utilities.
+- **`app/main.py`**: Launches the FastAPI application.
+- **`app/database.py`**: Manages the PostgreSQL connection pool and database operations.
+- **`app/routes.py`**: Contains API route definition.
+- **`app/utils.py`**: Helper functions for validating inputs and formatting data.
+- **`app/tests/`**: Unit and integration tests using **pytest**.
 
 ## API Endpoints
 
 ### `GET /rates`
 
-Fetches the average prices per day for the route between the origin and destination ports or regions for the given date range.
+Retrieve the average daily shipping prices for a specific route between an origin and destination port or region over a defined date range.
 
-#### Parameters:
-- `date_from` (required): Start date in `YYYY-MM-DD` format.
-- `date_to` (required): End date in `YYYY-MM-DD` format.
-- `origin` (required): Origin port code or region slug.
-- `destination` (required): Destination port code or region slug.
+#### Query Parameters:
+- **`date_from`** (required): The start date in `YYYY-MM-DD` format.
+- **`date_to`** (required): The end date in `YYYY-MM-DD` format.
+- **`origin`** (required): The origin port code or region.
+- **`destination`** (required): The destination port code or region.
 
 #### Example Request:
-
 ```bash
-curl "http://127.0.0.1:5000/rates?date_from=2016-01-01&date_to=2016-01-10&origin=CNSGH&destination=north_europe_main"
+curl "http://127.0.0.1:80/rates?date_from=2016-01-01&date_to=2016-01-10&origin=CNSGH&destination=north_europe_main"
 ```
 
 #### Example Response:
-
 ```json
 [
   {
@@ -78,116 +80,73 @@ curl "http://127.0.0.1:5000/rates?date_from=2016-01-01&date_to=2016-01-10&origin
   }
 ]
 ```
+The API returns `null` for days with fewer than 3 price entries.
 
-For days with fewer than 3 prices, the API returns `null` for the `average_price`.
-
-## Setup Instructions
+## Getting Started
 
 ### 1. Clone the Repository
+```bash
+git clone https://github.com/HenrikHub/shipping-rates-api.git
+cd shipping-rates-api
+```
+
+### 2. Build and Run the Application with Docker Compose
+
+Make sure **Docker** and **Docker Compose** are installed.
 
 ```bash
-git clone <repository_url>
-cd <repository_name>
+docker-compose up --build
 ```
 
-### 2. Set Up the Virtual Environment
+This command will:
+- Build the API and database containers.
+- Set up the PostgreSQL database with initial data from `rates.sql`.
+- Start both containers.
 
-Set up a Python virtual environment to manage dependencies:
+### 3. Accessing the API
 
+Once the containers are running, the API can be accessed at:
+
+```
+http://127.0.0.1:80/rates
+```
+
+To test the API:
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+curl "http://127.0.0.1:80/rates?date_from=2016-01-01&date_to=2016-01-10&origin=CNSGH&destination=north_europe_main"
 ```
 
-### 3. Install Dependencies
+### 4. Running Tests
 
-Install the necessary packages from the `requirements.txt` file:
-
+To run the tests using **pytest**:
 ```bash
-pip install -r requirements.txt
+python -m pytest .\app\tests\
 ```
 
-### 4. Set Up the Database
+These tests include:
 
-- Create a new SQL database (PostgreSQL or SQLite).
-- Apply the database schema provided in `schema.sql` to create the required tables.
-- Import the data provided in the database dump file.
+- API tests for key /rates).
+- Unit tests for the database connection handling (Database class).
+- Utility function tests for validation logic.
 
-```bash
-psql -U username -d database_name -f schema.sql  # For PostgreSQL
-```
-
-### 5. Configure Environment Variables
-
-Set up the following environment variables in a `.env` file or export them in your shell:
-
-- `DATABASE_URL`: Connection string to your SQL database (e.g., `postgresql://user:password@localhost:5432/dbname`).
-
-Example `.env` file:
-
-```
-DATABASE_URL=postgresql://user:password@localhost:5432/dbname
-```
-
-### 6. Run the Application
-
-Start the Flask application:
-
-```bash
-flask run
-```
-
-The API will be accessible at `http://127.0.0.1:5000`.
-
-### 7. Run Tests
-
-To run the provided unit tests:
-
-```bash
-python -m unittest discover app/tests/
-```
-
-## SQL Example Queries
-
-Below are examples of raw SQL queries used in the project:
-
-1. Fetching average price for a specific day between two ports:
-
-```sql
-SELECT price_date, AVG(price) AS average_price
-FROM prices
-WHERE origin_port = 'CNSGH' AND destination_port = 'north_europe_main'
-AND price_date BETWEEN '2016-01-01' AND '2016-01-10'
-GROUP BY price_date
-HAVING COUNT(price) >= 3;
-```
-
-2. Handling regions:
-
-You would also need to join ports and regions for queries that involve region slugs. Here's an example:
-
-```sql
-WITH recursive region_ports AS (
-    SELECT port_code, region_slug FROM ports WHERE region_slug = 'north_europe_main'
-    UNION
-    SELECT p.port_code, r.slug FROM regions r
-    JOIN ports p ON r.slug = p.region_slug
-    WHERE r.parent_slug = 'north_europe_main'
-)
-SELECT price_date, AVG(price) AS average_price
-FROM prices
-WHERE origin_port IN (SELECT port_code FROM region_ports)
-AND destination_port = 'CNSGH'
-AND price_date BETWEEN '2016-01-01' AND '2016-01-10'
-GROUP BY price_date
-HAVING COUNT(price) >= 3;
-```
 
 ## Error Handling
 
-- **400 Bad Request**: Returned if required parameters are missing or invalid.
-- **404 Not Found**: Returned if no data is found for the given parameters.
-- **500 Internal Server Error**: For unexpected errors, the API will return a generic 500 response, and log the error for debugging.
+- **404 Not Found**: No data found for the specified route and date range.
+- **422 Unprocessable Entity**: The request is well-formed, but there are semantic errors (e.g., invalid date format or wrong data type).
+- **500 Internal Server Error**: An unexpected error occurred (logged on the server).
 
 
+## Database Setup
 
+The API uses **PostgreSQL** for data storage. The schema and initial data setup are handled by the `rates.sql` script.
+
+
+## API Documentation
+
+Once the API is running, interactive documentation is available:
+
+- **Swagger UI**: `http://127.0.0.1:80/docs`
+- **ReDoc**: `http://127.0.0.1:80/redoc`
+
+Both provide a user-friendly interface for exploring the API's endpoints, parameters, and responses.

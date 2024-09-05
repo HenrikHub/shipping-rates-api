@@ -1,12 +1,9 @@
-from utils import validate_date, fetch_average_prices
-from database import get_db_pool
+from app.utils import validate_date, fetch_average_prices, validate_port_or_region
+from app.database import get_db_pool
 from fastapi import APIRouter, Query, Depends, HTTPException
 from typing import List, Any
 import logging
 import psycopg2
-
-# Assuming validate_date and fetch_average_prices are defined elsewhere
-# f
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -28,7 +25,6 @@ async def get_rates(
     - date_to (str): End date in YYYY-MM-DD format.
     - origin (str): Origin port code or region slug.
     - destination (str): Destination port code or region slug.
-    - db_pool (Any): Database connection pool, injected via dependency.
 
     Returns:
     - List[dict]: A list of dictionaries containing average prices and other relevant data.
@@ -37,20 +33,26 @@ async def get_rates(
     - HTTPException: If any error occurs during the data fetching process.
     """
 
-    # Validate dates
-    date_from = validate_date(date_from)
-    date_to = validate_date(date_to)
-
     try:
+        # Validate dates
+        date_from = validate_date(date_from)
+        date_to = validate_date(date_to)
+
         async with db_pool.acquire() as conn:
+            # Validate the existence of the origin and destination
+            await validate_port_or_region(conn, origin, "origin")
+            await validate_port_or_region(conn, destination, "destination")
+
+            # Fetch data from the database
             data = await fetch_average_prices(conn, date_from, date_to, origin, destination)
-            return data
+            return data  # FastAPI will automatically return this as JSON
+    except ValueError as e:
+        # This captures validation errors such as invalid date format, origin, or destination
+        logger.error(f"Validation error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except psycopg2.DatabaseError as e:
         logger.error(f"Database error fetching rates: {e}")
         raise HTTPException(status_code=500, detail="A database error occurred while fetching rates.")
-    except ValueError as e:
-        logger.error(f"Validation error fetching rates: {e}")
-        raise HTTPException(status_code=400, detail="Invalid input provided for fetching rates.")
     except Exception as e:
         logger.error(f"Unexpected error fetching rates: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred while fetching rates.")
