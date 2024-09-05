@@ -42,7 +42,7 @@ project_root/
 ### Key Files
 - **`app/main.py`**: Launches the FastAPI application.
 - **`app/database.py`**: Manages the PostgreSQL connection pool and database operations.
-- **`app/routes.py`**: Contains API route definitions.
+- **`app/routes.py`**: Contains API route definition.
 - **`app/utils.py`**: Helper functions for validating inputs and formatting data.
 - **`app/tests/`**: Unit and integration tests using **pytest**.
 
@@ -120,10 +120,15 @@ curl "http://127.0.0.1:80/rates?date_from=2016-01-01&date_to=2016-01-10&origin=C
 
 To run the tests using **pytest**:
 ```bash
-pytest
+python -m pytest .\app\tests\
 ```
 
-Tests include both unit and integration tests for the API, database, and utilities.
+These tests include:
+
+- API tests for key endpoints (e.g., /rates).
+- Unit tests for the database connection handling (Database class).
+- Utility function tests for validation logic.
+
 
 ## Error Handling
 

@@ -1,4 +1,4 @@
-from app.utils import validate_date, fetch_average_prices
+from app.utils import validate_date, fetch_average_prices, validate_port_or_region
 from app.database import get_db_pool
 from fastapi import APIRouter, Query, Depends, HTTPException
 from typing import List, Any
@@ -38,11 +38,16 @@ async def get_rates(
         date_from = validate_date(date_from)
         date_to = validate_date(date_to)
 
-        # Fetch data from database
         async with db_pool.acquire() as conn:
+            # Validate the existence of the origin and destination
+            await validate_port_or_region(conn, origin, "origin")
+            await validate_port_or_region(conn, destination, "destination")
+
+            # Fetch data from the database
             data = await fetch_average_prices(conn, date_from, date_to, origin, destination)
-            return data 
+            return data  # FastAPI will automatically return this as JSON
     except ValueError as e:
+        # This captures validation errors such as invalid date format, origin, or destination
         logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except psycopg2.DatabaseError as e:

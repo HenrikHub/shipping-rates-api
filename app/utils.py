@@ -18,6 +18,42 @@ async def fetch_average_prices(
     origin: str,
     destination: str
 ) -> List[dict]:
+    """
+    Fetches the average daily shipping prices between a given origin and destination 
+    within a specified date range.
+
+    The query uses recursive common table expressions (CTEs) to gather all regions
+    under the provided origin and destination. It then retrieves all relevant ports 
+    under these regions and filters the prices for those ports. 
+
+    If fewer than 3 prices exist for a given day, the average price for that day will be `NULL`.
+    Otherwise, it returns the rounded average price.
+
+    Parameters:
+    ----------
+    conn : aiopg connection
+        The database connection to execute the query.
+    date_from : str
+        The start date of the range in YYYY-MM-DD format.
+    date_to : str
+        The end date of the range in YYYY-MM-DD format.
+    origin : str
+        The origin port code or region slug.
+    destination : str
+        The destination port code or region slug.
+
+    Returns:
+    -------
+    List[dict]
+        A list of dictionaries containing the day and average price for each day 
+        in the specified date range. The format of each dictionary is:
+        {
+            "day": "YYYY-MM-DD",
+            "average_price": float or null
+        }
+        If no data exists for a particular day, `average_price` will be `null`.
+    """
+
     query = """
     WITH RECURSIVE all_origin_regions AS (
         -- Start with the provided origin region and recursively find child regions
@@ -102,7 +138,25 @@ async def fetch_average_prices(
 #######################################################################################################################################################################################
 # Validation
 #######################################################################################################################################################################################
-
+async def validate_port_or_region(conn, slug: str, field_name: str) -> bool:
+    """
+    Checks if the provided slug exists in the ports or regions tables.
+    Returns True if it exists, False otherwise.
+    """
+    query = """
+    SELECT EXISTS(
+        SELECT 1 FROM ports WHERE code = %s
+        UNION
+        SELECT 1 FROM regions WHERE slug = %s
+    )
+    """
+    async with conn.cursor() as cur:
+        await cur.execute(query, (slug, slug))
+        result = await cur.fetchone()
+        if not result[0]:
+            logger.warning(f"Invalid {field_name}: {slug}")
+            raise ValueError(f"The {field_name} '{slug}' does not exist.")
+        return True
 
 def validate_date(date_str: str) -> str:
     """
