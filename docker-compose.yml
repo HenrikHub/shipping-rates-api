@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     build:
@@ -14,6 +13,11 @@ services:
       - "5432:5432"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -24,17 +28,18 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
       
-test:
-  build:
-    context: ./app
-    dockerfile: Dockerfile
-  networks:
-    - app-network
-  command: ["python", "-m", "pytest", "tests"]
+  test:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+    command: ["python", "-m", "pytest", "tests"]
 
 networks:
   app-network:
