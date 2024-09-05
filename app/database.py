@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+import os
 import aiopg
 import psycopg2
 import logging
@@ -37,7 +38,7 @@ class Database:
 
 
 # Database connection settings
-dsn = "dbname=ratesdb user=postgres password=ratestask host=127.0.0.1"
+dsn = os.getenv("DATABASE_URL")
 db = Database(dsn)
 
 async def get_db_pool():
