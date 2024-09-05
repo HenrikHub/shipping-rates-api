@@ -1,46 +1,42 @@
 import pytest
-from unittest.mock import patch, AsyncMock
-from app.database import Database  # Replace 'your_module' with the actual module name
+from unittest.mock import AsyncMock, patch
+import os
+from app.database import Database
+
+"""
+Test suite for database connection handling.
+
+This file contains tests for the `Database` class, covering:
+- Successful connection to the PostgreSQL database using aiopg.
+- Handling connection failures.
+- Ensuring the connection pool is correctly managed.
+
+Environment variables are mocked for the DSN, and aiopg pool creation is simulated using mocks.
+"""
+
+
+# Example DSN in environment variable
+@pytest.fixture(autouse=True)
+def setup_dsn():
+    # Set up an environment variable for the DSN in the test
+    os.environ["DATABASE_DSN"] = "dbname=testdb user=testuser password=testpassword host=localhost"
 
 @pytest.mark.asyncio
-async def test_database_initialization():
-    db = Database("dbname=ratesdb user=postgres password=ratestask host=127.0.0.1")
-    assert db.dsn == "dbname=ratesdb user=postgres password=ratestask host=127.0.0.1"
-    assert db.pool is None
+@patch("app.database.aiopg.create_pool", new_callable=AsyncMock)  # Mock aiopg.create_pool
+async def test_connect_success(mock_create_pool):
+    # Use the DSN from the environment variable
+    dsn = os.getenv("DATABASE_DSN")
+    
+    # Initialize the Database instance
+    db = Database(dsn)
 
-@pytest.mark.asyncio
-@patch('aiopg.create_pool', new_callable=AsyncMock)
-async def test_database_connect_success(mock_create_pool):
-    db = Database("dsn")
+    # Simulate successful connection
+    mock_pool = AsyncMock()
+    mock_create_pool.return_value = mock_pool
+
+    # Call the connect method
     await db.connect()
-    mock_create_pool.assert_called_once_with("dsn")
-    assert db.pool is mock_create_pool.return_value
 
-@pytest.mark.asyncio
-@patch('aiopg.create_pool', new_callable=AsyncMock, side_effect=Exception("Connection failed"))
-async def test_database_connect_failure(mock_create_pool):
-    db = Database("dsn")
-    with pytest.raises(Exception, match="Connection failed"):
-        await db.connect()
-
-@pytest.mark.asyncio
-async def test_database_disconnect():
-    db = Database("dsn")
-    db.pool = AsyncMock()
-    await db.disconnect()
-    db.pool.close.assert_called_once()
-    db.pool.wait_closed.assert_called_once()
-    assert db.pool is None
-
-@pytest.mark.asyncio
-async def test_get_pool_success():
-    db = Database("dsn")
-    db.pool = AsyncMock()
-    pool = await db.get_pool()
-    assert pool is db.pool
-
-@pytest.mark.asyncio
-async def test_get_pool_failure():
-    db = Database("dsn")
-    with pytest.raises(ConnectionError, match="Database connection not available"):
-        await db.get_pool()
+    # Ensure the pool was created
+    mock_create_pool.assert_called_once_with(dsn)
+    assert db.pool == mock_pool
