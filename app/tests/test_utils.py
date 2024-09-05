@@ -1,6 +1,6 @@
 import pytest
-from app.utils import validate_date
-from app.utils import validate_port_or_region
+from utils import validate_date
+from utils import validate_port_or_region
 
 from unittest.mock import AsyncMock, MagicMock
 

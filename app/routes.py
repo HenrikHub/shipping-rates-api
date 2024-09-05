@@ -1,5 +1,5 @@
-from app.utils import validate_date, fetch_average_prices, validate_port_or_region
-from app.database import get_db_pool
+from utils import validate_date, fetch_average_prices, validate_port_or_region
+from database import get_db_pool
 from fastapi import APIRouter, Query, Depends, HTTPException
 from typing import List, Any
 import logging

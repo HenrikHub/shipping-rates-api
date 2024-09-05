@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 import os
-from app.database import Database
+from database import Database
 
 """
 Test suite for database connection handling.
