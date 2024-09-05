@@ -1,0 +1,46 @@
+services:
+  db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ratestask
+      POSTGRES_DB: ratesdb
+    volumes:
+      - ./database/rates.sql:/docker-entrypoint-initdb.d/rates.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:ratestask@db:5432/ratesdb
+    ports:
+      - "80:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+      
+  test:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+    command: ["python", "-m", "pytest", "tests"]
+
+networks:
+  app-network:
+    driver: bridge
